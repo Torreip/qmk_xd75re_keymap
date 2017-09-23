@@ -20,5 +20,12 @@
 #include "../../config.h"
 
 // place overrides here
+//#define BACKLIGHT_ENABLE
+//#define BACKLIGHT_PIN F5
+//#undef  BACKLIGHT_BREATHING
+//#define BACKLIGHT_LEVELS 6
+
+//#define LEADER_TIMEOUT 300
+//#define BACKLIGHT_BREATHING
 
 #endif
