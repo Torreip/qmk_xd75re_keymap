@@ -14,10 +14,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "xd75.h"
-#include "action_layer.h"
+//#include "action_layer.h"
 
 /* tap count needed for toggling a feature */
-#define TAPPING_TOGGLE  2
+//#define TAPPING_TOGGLE  1
+
+#define ONESHOT_TAP_TOGGLE 3  /* Tapping this number of times holds the key until tapped this number of times again. */
+#define ONESHOT_TIMEOUT 2000  /* Time (in ms) before the one shot key is released */
 
 /* Fillers to make layering more clear */
 #define _______ KC_TRNS
@@ -47,20 +50,24 @@ enum custom_keycodes {
 #define ALTSLASH LALT(KC_SLSH)
 #define ALTSHFT LALT(KC_LSFT)
 #define ALTBSP ALT_T(KC_BSPC)
+#define ALTSLSH ALGR_T(KC_SLSH)
+#define SFTBSLS MT(MOD_RSFT, KC_BSLS)
+#define MLSHIFT OSM(KC_LSFT)
+#define MLCTL OSM(KC_LCTL)
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
 /* QWERTY - MIT ENHANCED / GRID COMPATIBLE
- * .---------------------------------------------------------------------------------------------------------------------- 2u ------------.
- * | `      | 1      | 2      | 3      | 4      | 5      | 6      | 7      | 8      | 9      | 0      | -      | =      | XXXXXX . BACKSP |
- * |--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+-----------------|
- * | TAB    | Q      | W      | E      | R      | T      | Y      | U      | I      | O      | P      | [      | ]      | \      | DEL    |
- * |--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+- 2u ------------+--------|
- * | ESC    | A      | S      | D      | F      | G      | H      | J      | K      | L      | ;      | '      | XXXXXX . ENTER  | PG UP  |
- * |--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+- 2u ---------------------+--------|
- * | LSHIFT | Z      | X      | C      | V      | B      | N      | M      | ,      | .      | /      | XXXXXX . RSHIFT | UP     | PG DN  |
- * |--------+--------+--------+--------+--------+- 2u ------------+--------+--------+--------+--------+-----------------+--------+--------|
- * | BRITE  | LCTRL  | LALT   | LGUI   | RAISE  | XXXXXX . SPACE  | LOWER  | RGUI   | RALT   | RCTRL  | FN     | LEFT   | DOWN   | RIGHT  |
+ * .--------------------------------------------------------------------------------------------------------------------------------------.
+ * | `      | 1      | 2      | 3      | 4      | 5      | ESC    | F5     | BACKSP | 6      | 7      | 8      | 9      | 0      | -      |
+ * |--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------|
+ * | TAB    | Q      | W      | E      | R      | T      |        |        |        |        | Y      | U      | I      | O      | P      |
+ * |--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------|
+ * | DEL    | A      | S      | D      | F      | G      |        |        |        |        | H      | J      | K      | L      | ;      |
+ * |--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------|
+ * | LSHIFT | Z      | X      | C      | V      | B      |        |        |        |        | N      | M      | ,      | .      | /      |
+ * |--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+-----------------+--------+--------|
+ * | LCTRL  | LGUI   | LALTS  | LALT   | LOWER  | SPACE  | BACKSP | PG DN  | TAB    | ENTER  | RAISE  | /      | LEFT   | DOWN   | RIGHT  |
  * '--------------------------------------------------------------------------------------------------------------------------------------'
  */
  
@@ -75,8 +82,8 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   { KC_GRV,  KC_1,    KC_2,    KC_3,    KC_4,    KC_5,    KC_ESC,  KC_F5,   KC_BSPC, KC_6,   KC_7,    KC_8,    KC_9,    KC_0,    KC_MINS  },
   { KC_TAB,  KC_Q,    KC_W,    KC_E,    KC_R,    KC_T,    KC_LBRC, MO(_FN), KC_RBRC, KC_Y,   KC_U,    KC_I,    KC_O,    KC_P,    KC_EQL   },
   { KC_DEL,  KC_A,    KC_S,    KC_D,    KC_F,    KC_G,    KC_RSFT, KC_RSFT, KC_RSFT, KC_H,   KC_J,    KC_K,    KC_L,    KC_SCLN, KC_QUOT  },
-  { KC_LSFT, KC_Z,    KC_X,    KC_C,    KC_V,    KC_B,    KC_RSFT, KC_PGUP, KC_RCTL, KC_N,   KC_M,    KC_COMM, KC_DOT,  KC_UP,   KC_BSLS  },
-  { KC_LCTL, KC_LGUI, ALTSHFT, KC_LALT, KC_FN1,  KC_SPC,  KC_BSPC, KC_PGDN, KC_TAB,  KC_ENT, KC_FN2,  KC_SLSH, KC_LEFT, KC_DOWN, KC_RGHT  },
+  { KC_LSFT, KC_Z,    KC_X,    KC_C,    KC_V,    KC_B,    KC_RSFT, KC_PGUP, KC_RCTL, KC_N,   KC_M,    KC_COMM, KC_DOT,  KC_UP,   SFTBSLS  },
+  { KC_LCTL, KC_LGUI, ALTSHFT, KC_LALT, MO(_LW), KC_SPC,  KC_BSPC, KC_PGDN, KC_TAB,  KC_ENT, MO(_RS), ALTSLSH, KC_LEFT, KC_DOWN, KC_RGHT  },
  },
 
 
@@ -136,9 +143,9 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
  
  [_RS] = { /* RAISED */
   { _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______  },
-  { _______, _______, _______, _______, _______, _______, _______, ___T___, _______, _______, _______, _______, _______, _______, _______  },
-  { _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______  },
-  { _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______  },
+  { _______, _______, _______, KC_MS_U, _______, _______, _______, ___T___, _______, _______, KC_MPRV, KC_MNXT, _______, KC_MPLY, _______  },
+  { _______, _______, KC_MS_L, KC_MS_D, KC_MS_R, _______, _______, _______, _______, _______, KC_BTN1, KC_BTN2, _______, _______, _______  },
+  { _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, KC_VOLD, KC_VOLU, KC_MUTE, _______, _______  },
   { _______, _______, _______, _______, ___T___, _______, _______, _______, _______, _______, ___T___, _______, _______, _______, _______  },
  },
  
@@ -166,18 +173,18 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   */
  
  [_FN] = { /* FUNCTION */
-  { _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______  },
-  { _______, _______, _______, _______, _______, _______, _______, ___T___, _______, _______, _______, _______, _______, _______, _______  },
-  { _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______  },
-  { _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______  },
+  { KC_NLCK, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, TERM_OFF },
+  { KC_SLCK, _______, _______, RGB_HUI, RGB_HUD, _______, RGB_TOG, ___T___, RGB_MOD, _______, _______, _______, _______, _______, TERM_ON  },
+  { KC_CAPS, _______, _______, RGB_SAI, RGB_SAD, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______  },
+  { _______, _______, _______, RGB_VAI, RGB_VAD, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______  },
   { RST    , _______, _______, _______, ___T___, _______, _______, _______, _______, _______, ___T___, _______, _______, _______, _______  },
  },
 };
 
-const uint16_t PROGMEM fn_actions[] = {
+/*const uint16_t PROGMEM fn_actions[] = {
     [1] = ACTION_LAYER_TAP_TOGGLE(_LW),
     [2] = ACTION_LAYER_TAP_TOGGLE(_RS)
-};
+};*/
 
 /*
 const macro_t *action_get_macro(keyrecord_t *record, uint8_t id, uint8_t opt)
@@ -210,16 +217,37 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
       }
       return false;
       break; */
-    case RST:
-      rgblight_mode(1);
-      rgblight_setrgb(0xFF, 0x00, 0x00);
-      _delay_ms(250);
-      rgblight_setrgb(0xFF, 0x20, 0x00);
-      _delay_ms(250);
-       rgblight_setrgb(0xFF, 0x00, 0x00);
-      _delay_ms(250);
+//      case KC_Q:
+//          rgblight_mode(21);
+//          rgblight_setrgb(0xFF, 0x00, 0x00);
+//
+//          if (record->event.pressed) {
+//        	  register_code  (KC_Q);
+//        	  unregister_code(KC_Q);
+//          }
+//
+////          _delay_ms(2000);
+//
+//          return true;
+//          break;
 
-      reset_keyboard();
+      case RST:
+//      rgblight_mode(1);
+//      rgblight_setrgb(0xFF, 0x00, 0x00);
+//      _delay_ms(250);
+//      rgblight_setrgb(0xFF, 0x20, 0x00);
+//      _delay_ms(250);
+//       rgblight_setrgb(0xFF, 0x00, 0x00);
+//      _delay_ms(250);
+      if (record->event.pressed) {
+        rgblight_effect_knight(1);
+        rgblight_sethsv(0x00, 0xFF, 0xFF);
+      }
+      else {
+        reset_keyboard();
+      }
+
+//      reset_keyboard();
       return false;
       break;
   }
@@ -245,9 +273,12 @@ void matrix_scan_user(void) {
 /*		if ((old_mode != NO_MODE) && (rgblight_get_mode() != 1))
 		{
           rgblight_mode(old_mode);
-	    } */
-        rgblight_mode(1);
-        rgblight_setrgb(0x22, 0x22, 0x44);
+	    }
+	    else */
+	    {
+//          rgblight_mode(1);
+//          rgblight_setrgb(0x22, 0x22, 0x44);
+        }
         break;
       case _LW:
 //		old_mode = rgblight_get_mode();
