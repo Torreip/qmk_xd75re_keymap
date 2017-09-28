@@ -15,8 +15,9 @@
  */
 
 #include QMK_KEYBOARD_H
+#include <stdbool.h>
 //#include "debug.h"
-//#include "action_layer.h"
+#include "action_layer.h"
 #include "version.h"
 
 /* tap count needed for toggling a feature */
@@ -24,6 +25,9 @@
 
 // #define ONESHOT_TAP_TOGGLE 3  /* Tapping this number of times holds the key until tapped this number of times again. */
 // #define ONESHOT_TIMEOUT 2000  /* Time (in ms) before the one shot key is released */
+#define LONGPRESS_DELAY 150
+#define LAYER_TOGGLE_DELAY 300
+
 
 /* Fillers to make layering more clear */
 #define _______ KC_TRNS
@@ -31,10 +35,12 @@
 #define XXXXXXX KC_NO
 
 /* Layer shorthand */
-#define _QW 0
-#define _LW 1
-#define _RS 2
-#define _FN 3
+enum layers {
+  _QW = 0, /* Base layer, QWERTY */
+  _LW,     /* LOWER */
+  _RS,     /* RAISE */
+  _FN,     /* FUNCTION */
+};
 
 enum custom_keycodes {
   PLACEHOLDER = SAFE_RANGE, // can always be here
@@ -161,6 +167,8 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   },
 };
 
+static uint16_t key_timer;
+static bool singular_key = false;
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
   static uint8_t skip = false;  /* if true: we do not restore the RGB state */
@@ -196,13 +204,16 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 
     case LOWER:
       if (record->event.pressed) {
+        key_timer = timer_read();
+        singular_key = true;
         layer_on(_LW);
+
         if (biton32(layer_state) == _QW) {
           RGB_current_mode = rgblight_get_mode();
         }
         rgblight_mode(1);
         rgblight_setrgb(0x00, 0xA0, 0xFF);
-      } else {
+      } else if (timer_elapsed(key_timer) < LAYER_TOGGLE_DELAY || !singular_key) {
         layer_off(_LW);
         if (!skip) {
           rgblight_mode(RGB_current_mode);
@@ -215,13 +226,16 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 
     case RAISE:
       if (record->event.pressed) {
+        key_timer = timer_read();
+        singular_key = true;
         layer_on(_RS);
+
         if (biton32(layer_state) == _QW) {
           RGB_current_mode = rgblight_get_mode();
         }
         rgblight_mode(1);
         rgblight_setrgb(0xFF, 0x00, 0x00);
-      } else {
+      } else if (timer_elapsed(key_timer) < LAYER_TOGGLE_DELAY || !singular_key) {
         layer_off(_RS);
         if (!skip) {
           rgblight_mode(RGB_current_mode);
@@ -234,13 +248,16 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 
     case FUNC:
       if (record->event.pressed) {
+        key_timer = timer_read();
+        singular_key = true;
         layer_on(_FN);
+
         if (biton32(layer_state) == _QW) {
           RGB_current_mode = rgblight_get_mode();
         }
         rgblight_mode(1);
         rgblight_setrgb(0xFF, 0x20, 0x00);
-      } else {
+      } else if (timer_elapsed(key_timer) < LAYER_TOGGLE_DELAY || !singular_key) {
         layer_off(_FN);
         if (!skip) {
           rgblight_mode(RGB_current_mode);
@@ -265,7 +282,13 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
       reset_keyboard();
       return false;
       break;
-  }
+
+    /* If any other key was pressed during the layer mod hold period,
+     * then the layer mod was used momentarily, and should block latching */
+    default:
+      singular_key = false;
+      break;
+   }
   return true;
 }
 
