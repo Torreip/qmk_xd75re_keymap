@@ -22,8 +22,8 @@
 /* tap count needed for toggling a feature */
 //#define TAPPING_TOGGLE  1
 
-#define ONESHOT_TAP_TOGGLE 3  /* Tapping this number of times holds the key until tapped this number of times again. */
-#define ONESHOT_TIMEOUT 2000  /* Time (in ms) before the one shot key is released */
+// #define ONESHOT_TAP_TOGGLE 3  /* Tapping this number of times holds the key until tapped this number of times again. */
+// #define ONESHOT_TIMEOUT 2000  /* Time (in ms) before the one shot key is released */
 
 /* Fillers to make layering more clear */
 #define _______ KC_TRNS
@@ -46,6 +46,12 @@ enum custom_keycodes {
   RST,
 };
 
+/* Tap Dance Declarations */
+enum {
+  SCL = 0,
+  QUO,
+};
+
 /* Short forms for keycodes so that they fit into limited-width cells */
 #define M_LOWER M(MACRO_LOWER)
 #define M_UPPER M(MACRO_UPPER)
@@ -66,9 +72,9 @@ int RGB_current_mode;
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
-/* QWERTY - MIT ENHANCED / GRID COMPATIBLE
+/* QWERTY
  * .--------------------------------------------------------------------------------------------------------------------------------------.
- * | `      | 1      | 2      | 3      | 4      | 5      | ESC    | F5     | BACKSP | 6      | 7      | 8      | 9      | 0      | -      |
+ * | `      | 1      | 2      | 3      | 4      | 5      | ESC    | F5     | Bkp    | 6      | 7      | 8      | 9      | 0      | -      |
  * |--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------|
  * | TAB    | Q      | W      | E      | R      | T      | [      | FUNC   | ]      | Y      | U      | I      | O      | P      | =      |
  * |--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------|
@@ -90,7 +96,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
  [_QW] = { /* QWERTY */
   { KC_GRV,  KC_1,    KC_2,    KC_3,    KC_4,    KC_5,    KC_ESC,  KC_F5,   KC_BSPC, KC_6,   KC_7,    KC_8,    KC_9,    KC_0,    KC_MINS  },
   { KC_TAB,  KC_Q,    KC_W,    KC_E,    KC_R,    KC_T,    KC_LBRC, FUNC,    KC_RBRC, KC_Y,   KC_U,    KC_I,    KC_O,    KC_P,    KC_EQL   },
-  { KC_DEL,  KC_A,    KC_S,    KC_D,    KC_F,    KC_G,    XXXXXXX, XXXXXXX, XXXXXXX, KC_H,   KC_J,    KC_K,    KC_L,    KC_SCLN, KC_QUOT  },
+  { KC_DEL,  KC_A,    KC_S,    KC_D,    KC_F,    KC_G,    XXXXXXX, XXXXXXX, XXXXXXX, KC_H,   KC_J,    KC_K,    KC_L,    TD(SCL), TD(QUO)  },
   { KC_LSFT, KC_Z,    KC_X,    KC_C,    KC_V,    KC_B,    XXXXXXX, KC_PGUP, KC_RCTL, KC_N,   KC_M,    KC_COMM, KC_DOT,  KC_UP,   SFTBSLS  },
   { KC_LCTL, KC_LGUI, ALTSHFT, KC_LALT, LOWER,   KC_SPC,  KC_BSPC, KC_PGDN, KC_TAB,  KC_ENT, RAISE,   ALTSLSH, KC_LEFT, KC_DOWN, KC_RGHT  },
  },
@@ -289,6 +295,15 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
   return true;
 }
 
+/* Tap Dance Definitions */
+qk_tap_dance_action_t tap_dance_actions[] = {
+  /* Shifting for double quote and semicolon */
+  [SCL] = ACTION_TAP_DANCE_DOUBLE(KC_SCLN, KC_COLN),
+  [QUO] = ACTION_TAP_DANCE_DOUBLE(KC_QUOT, KC_DQUO),
+
+    // complex tap dance function (to specify what happens when key is pressed 3+ times, for example). See https://docs.qmk.fm/tap_dance.html for how to define
+    //[YOUR_TAPDANCE_2] = ACTION_TAP_DANCE_FN(your_function_name),
+};
 
 /* Called at startup */
 void matrix_init_user(void) {
