@@ -27,6 +27,7 @@
 // #define ONESHOT_TIMEOUT 2000  /* Time (in ms) before the one shot key is released */
 #define LONGPRESS_DELAY 150
 #define LAYER_TOGGLE_DELAY 300
+#define LAYER_SKIP_DELAY 1000
 
 
 /* Fillers to make layering more clear */
@@ -159,8 +160,8 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
  */
 
   [_FN] = { /* FUNCTION */
-{ KC_NLCK, _______, _______, _______, _______, _______,   _______, _______, _______,   _______, _______, _______, _______, _______, TERM_OFF },
-{ KC_SLCK, _______, _______, RGB_HUI, RGB_HUD, _______,   RGB_TOG, ___T___, RGB_MOD,   _______, _______, _______, _______, _______, TERM_ON },
+{ KC_NLCK, _______, _______, _______, _______, _______,   _______, _______, _______,   _______, _______, _______, _______, TERM_ON,TERM_OFF },
+{ KC_SLCK, _______, _______, RGB_HUI, RGB_HUD, _______,   RGB_TOG, ___T___, RGB_MOD,   RGB_M_P, RGB_M_B, RGB_M_R,RGB_M_SW, RGB_M_K, RGB_M_G },
 { KC_CAPS, _______, _______, RGB_SAI, RGB_SAD, _______,   _______, _______, _______,   _______, _______, _______, _______, _______, _______ },
 {  VRSN  , _______, _______, RGB_VAI, RGB_VAD, _______,   _______, _______, _______,   _______, _______, _______, _______, _______, _______ },
 {   RST  ,  KMAP  , _______, _______, XXXXXXX, _______,   _______, _______, _______,   _______, XXXXXXX, _______, _______, _______, _______ },
@@ -199,6 +200,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     case RGB_VAI:
     case RGB_VAD:
       skip = true;
+      singular_key = false;
       return true;
       break;
 
@@ -213,13 +215,16 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         }
         rgblight_mode(1);
         rgblight_setrgb(0x00, 0xA0, 0xFF);
-      } else if (timer_elapsed(key_timer) < LAYER_TOGGLE_DELAY || !singular_key) {
+      } else if (timer_elapsed(key_timer) < LAYER_TOGGLE_DELAY
+          || timer_elapsed(key_timer) > LAYER_SKIP_DELAY
+          || !singular_key) {
         layer_off(_LW);
-        if (!skip) {
-          rgblight_mode(RGB_current_mode);
-        } else {
-          skip = false;
-        }
+        if (skip) {
+           RGB_current_mode = rgblight_get_mode();
+           skip = false;
+         } else {
+           rgblight_mode(RGB_current_mode);
+         }
       }
       return false;
       break;
@@ -235,14 +240,17 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         }
         rgblight_mode(1);
         rgblight_setrgb(0xFF, 0x00, 0x00);
-      } else if (timer_elapsed(key_timer) < LAYER_TOGGLE_DELAY || !singular_key) {
+      } else if (timer_elapsed(key_timer) < LAYER_TOGGLE_DELAY
+          || timer_elapsed(key_timer) > LAYER_SKIP_DELAY
+          || !singular_key) {
         layer_off(_RS);
-        if (!skip) {
-          rgblight_mode(RGB_current_mode);
-        } else {
-          skip = false;
-        }
-      }
+        if (skip) {
+           RGB_current_mode = rgblight_get_mode();
+           skip = false;
+         } else {
+           rgblight_mode(RGB_current_mode);
+         }
+       }
       return false;
       break;
 
@@ -252,17 +260,23 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         singular_key = true;
         layer_on(_FN);
 
-        if (biton32(layer_state) == _QW) {
-          RGB_current_mode = rgblight_get_mode();
+        if (!skip)
+        {
+          if (biton32(layer_state) == _QW) {
+            RGB_current_mode = rgblight_get_mode();
+          }
+          rgblight_mode(1);
+          rgblight_setrgb(0xFF, 0x20, 0x00);
         }
-        rgblight_mode(1);
-        rgblight_setrgb(0xFF, 0x20, 0x00);
-      } else if (timer_elapsed(key_timer) < LAYER_TOGGLE_DELAY || !singular_key) {
+      } else if (timer_elapsed(key_timer) < LAYER_TOGGLE_DELAY
+          || timer_elapsed(key_timer) > LAYER_SKIP_DELAY
+          || !singular_key) {
         layer_off(_FN);
-        if (!skip) {
-          rgblight_mode(RGB_current_mode);
-        } else {
+        if (skip) {
+          RGB_current_mode = rgblight_get_mode();
           skip = false;
+        } else {
+          rgblight_mode(RGB_current_mode);
         }
       }
       return false;
@@ -272,11 +286,11 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
       rgblight_enable();
       rgblight_mode(1);
 
-      rgblight_sethsv(0x00, 0xFF, 0xFF);
+      rgblight_sethsv_noeeprom(0x00, 0xFF, 0xFF);
       _delay_ms(250);
-      rgblight_sethsv(0x3C, 0xFF, 0xFF);
+      rgblight_sethsv_noeeprom(0x3C, 0xFF, 0xFF);
       _delay_ms(250);
-      rgblight_sethsv(0x00, 0xFF, 0xFF);
+      rgblight_sethsv_noeeprom(0x00, 0xFF, 0xFF);
       _delay_ms(250);
 
       reset_keyboard();
@@ -299,15 +313,13 @@ qk_tap_dance_action_t tap_dance_actions[] = {
   [QUO] = ACTION_TAP_DANCE_DOUBLE(KC_QUOT, KC_DQUO),
 
     // complex tap dance function (to specify what happens when key is pressed 3+ times, for example). See https://docs.qmk.fm/tap_dance.html for how to define
-    //[YOUR_TAPDANCE_2] = ACTION_TAP_DANCE_FN(your_function_name),
+    //[YOUR_TAPDANCE_2] = ACTION_TAP_DANCE_FN(your_function_name),0
 };
+
 
 /* Called at startup */
 void matrix_init_user(void) {
-  /* Setup startup underglow */
-  rgblight_enable();
-  rgblight_sethsv(0xF0, 0xFF, 0xFF);
-  rgblight_mode(10);
+  rgblight_init();
   RGB_current_mode = rgblight_get_mode();
 }
 
