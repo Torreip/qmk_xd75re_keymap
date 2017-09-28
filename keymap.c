@@ -1,4 +1,4 @@
-/* Copyright 2017 REPLACE_WITH_YOUR_NAME
+/* Copyright 2017 Pierre V.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -13,7 +13,8 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "xd75.h"
+
+#include QMK_KEYBOARD_H
 //#include "debug.h"
 //#include "action_layer.h"
 #include "version.h"
