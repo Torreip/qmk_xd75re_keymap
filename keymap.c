@@ -75,7 +75,9 @@ enum {
 #define MLSHIFT OSM(KC_LSFT)
 #define MLCTL OSM(KC_LCTL)
 
-int RGB_current_mode;
+#ifdef RGBLIGHT_ENABLE
+  int RGB_current_mode;
+#endif /* RGBLIGHT_ENABLE */
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 /* QWERTY
@@ -170,9 +172,9 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
 static uint16_t key_timer;
 static bool singular_key = false;
+static uint8_t skip = false;  /* if true: we do not restore the RGB state */
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
-  static uint8_t skip = false;  /* if true: we do not restore the RGB state */
 
   switch (keycode) {
     // dynamically generate these.
@@ -180,6 +182,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
       if (record->event.pressed) {
         SEND_STRING(QMK_KEYBOARD "/" QMK_KEYMAP " @ " QMK_VERSION);
       }
+
       return false;
       break;
 
@@ -187,6 +190,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
       if (record->event.pressed) {
         SEND_STRING("http://www.keyboard-layout-editor.com/#/gists/0e924c013c75d1dc4bbf51806b5500ee");
       }
+
       return false;
       break;
 
@@ -210,22 +214,12 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         singular_key = true;
         layer_on(_LW);
 
-        if (biton32(layer_state) == _QW) {
-          RGB_current_mode = rgblight_get_mode();
-        }
-        rgblight_mode(1);
-        rgblight_setrgb(0x00, 0xA0, 0xFF);
       } else if (timer_elapsed(key_timer) < LAYER_TOGGLE_DELAY
-          || timer_elapsed(key_timer) > LAYER_SKIP_DELAY
-          || !singular_key) {
+                 || timer_elapsed(key_timer) > LAYER_SKIP_DELAY
+                 || !singular_key) {
         layer_off(_LW);
-        if (skip) {
-           RGB_current_mode = rgblight_get_mode();
-           skip = false;
-         } else {
-           rgblight_mode(RGB_current_mode);
-         }
       }
+
       return false;
       break;
 
@@ -235,22 +229,12 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         singular_key = true;
         layer_on(_RS);
 
-        if (biton32(layer_state) == _QW) {
-          RGB_current_mode = rgblight_get_mode();
-        }
-        rgblight_mode(1);
-        rgblight_setrgb(0xFF, 0x00, 0x00);
       } else if (timer_elapsed(key_timer) < LAYER_TOGGLE_DELAY
-          || timer_elapsed(key_timer) > LAYER_SKIP_DELAY
-          || !singular_key) {
+                 || timer_elapsed(key_timer) > LAYER_SKIP_DELAY
+                 || !singular_key) {
         layer_off(_RS);
-        if (skip) {
-           RGB_current_mode = rgblight_get_mode();
-           skip = false;
-         } else {
-           rgblight_mode(RGB_current_mode);
-         }
-       }
+      }
+
       return false;
       break;
 
@@ -260,25 +244,14 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         singular_key = true;
         layer_on(_FN);
 
-        if (!skip)
-        {
-          if (biton32(layer_state) == _QW) {
-            RGB_current_mode = rgblight_get_mode();
-          }
-          rgblight_mode(1);
-          rgblight_setrgb(0xFF, 0x20, 0x00);
+        if (!skip) {
         }
       } else if (timer_elapsed(key_timer) < LAYER_TOGGLE_DELAY
-          || timer_elapsed(key_timer) > LAYER_SKIP_DELAY
-          || !singular_key) {
+                 || timer_elapsed(key_timer) > LAYER_SKIP_DELAY
+                 || !singular_key) {
         layer_off(_FN);
-        if (skip) {
-          RGB_current_mode = rgblight_get_mode();
-          skip = false;
-        } else {
-          rgblight_mode(RGB_current_mode);
-        }
       }
+
       return false;
       break;
 
@@ -302,7 +275,8 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     default:
       singular_key = false;
       break;
-   }
+  }
+
   return true;
 }
 
@@ -312,15 +286,57 @@ qk_tap_dance_action_t tap_dance_actions[] = {
   [SCL] = ACTION_TAP_DANCE_DOUBLE(KC_SCLN, KC_COLN),
   [QUO] = ACTION_TAP_DANCE_DOUBLE(KC_QUOT, KC_DQUO),
 
-    // complex tap dance function (to specify what happens when key is pressed 3+ times, for example). See https://docs.qmk.fm/tap_dance.html for how to define
-    //[YOUR_TAPDANCE_2] = ACTION_TAP_DANCE_FN(your_function_name),0
+  // complex tap dance function (to specify what happens when key is pressed 3+ times, for example). See https://docs.qmk.fm/tap_dance.html for how to define
+  //[YOUR_TAPDANCE_2] = ACTION_TAP_DANCE_FN(your_function_name),0
 };
 
+/* Runs whenever there is a layer state change. */
+uint32_t layer_state_set_user(uint32_t state) {
+
+#ifdef RGBLIGHT_ENABLE
+  switch (biton32(state)) {
+    case _QW:
+      if (skip) {
+        RGB_current_mode = rgblight_get_mode();
+        skip = false;
+      } else {
+        rgblight_mode(RGB_current_mode);
+      }
+
+      break;
+
+    case _LW:
+      RGB_current_mode = rgblight_get_mode();
+      rgblight_mode(1);
+      rgblight_setrgb(0x00, 0xA0, 0xFF);
+      break;
+
+    case _RS:
+      RGB_current_mode = rgblight_get_mode();
+      rgblight_mode(1);
+      rgblight_setrgb(0xFF, 0x00, 0x00);
+      break;
+
+    case _FN:
+      RGB_current_mode = rgblight_get_mode();
+      rgblight_mode(1);
+      rgblight_setrgb(0xFF, 0x20, 0x00);
+      break;
+
+    default:
+      break;
+  }
+#endif /* RGBLIGHT_ENABLE */
+
+  return state;
+}
 
 /* Called at startup */
 void matrix_init_user(void) {
+#ifdef RGBLIGHT_ENABLE
   rgblight_init();
   RGB_current_mode = rgblight_get_mode();
+#endif /* RGBLIGHT_ENABLE */
 }
 
 /* Called all the time */
