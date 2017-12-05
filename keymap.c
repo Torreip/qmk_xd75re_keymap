@@ -244,9 +244,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         singular_key = true;
         layer_on(_FN);
 
-        if (!skip) {
-        }
-      } else if (timer_elapsed(key_timer) < LAYER_TOGGLE_DELAY
+       } else if (timer_elapsed(key_timer) < LAYER_TOGGLE_DELAY
                  || timer_elapsed(key_timer) > LAYER_SKIP_DELAY
                  || !singular_key) {
         layer_off(_FN);
@@ -286,8 +284,11 @@ qk_tap_dance_action_t tap_dance_actions[] = {
   [SCL] = ACTION_TAP_DANCE_DOUBLE(KC_SCLN, KC_COLN),
   [QUO] = ACTION_TAP_DANCE_DOUBLE(KC_QUOT, KC_DQUO),
 
-  // complex tap dance function (to specify what happens when key is pressed 3+ times, for example). See https://docs.qmk.fm/tap_dance.html for how to define
-  //[YOUR_TAPDANCE_2] = ACTION_TAP_DANCE_FN(your_function_name),0
+  /* complex tap dance function (to specify what happens when key is 
+   * pressed 3+ times, for example). See 
+   * https://docs.qmk.fm/tap_dance.html for how to define
+  [YOUR_TAPDANCE_2] = ACTION_TAP_DANCE_FN(your_function_name),0
+  * /
 };
 
 /* Runs whenever there is a layer state change. */
