@@ -288,7 +288,7 @@ qk_tap_dance_action_t tap_dance_actions[] = {
    * pressed 3+ times, for example). See 
    * https://docs.qmk.fm/tap_dance.html for how to define
   [YOUR_TAPDANCE_2] = ACTION_TAP_DANCE_FN(your_function_name),0
-  * /
+  */
 };
 
 /* Runs whenever there is a layer state change. */
