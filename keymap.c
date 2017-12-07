@@ -90,7 +90,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
  * |-----+-----+-----+-----+-----+-----++-----+-----+-----++-----+-----+-----+-----+-----+-----|
  * |LSHFT|  Z  |  X  |  C  |  V  |  B  ||     |PG UP|RCTRL||  N  |  M  |  ,  |  .  | UP  |  \  |
  * |-----+-----+-----+-----+-----+-----++-----+-----+-----++-----+-----+-----+-----+-----+-----|
- * |LCTRL|LGUI |LALTS|LALT |LOWER|SPACE|| Bkp |PG DN| TAB ||ENTER|RAISE|  /  |LEFT |DOWN |RIGHT|
+ * |LCTRL|LGUI |LALTS|LALT |LOWER|SPACE|| Bkp |PG DN|LSHFT||ENTER|RAISE|  /  |LEFT |DOWN |RIGHT|
  * '-------------------------------------------------------------------------------------------'
  */
  
@@ -99,7 +99,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 { KC_TAB ,  KC_Q  ,  KC_W  ,  KC_E  ,  KC_R  ,  KC_T  ,   KC_LBRC,  FUNC  , KC_RBRC,    KC_Y  ,  KC_U  ,  KC_I  ,  KC_O  ,  KC_P  , KC_EQL  },
 { KC_DEL ,  KC_A  ,  KC_S  ,  KC_D  ,  KC_F  ,  KC_G  ,   XXXXXXX, XXXXXXX, XXXXXXX,    KC_H  ,  KC_J  ,  KC_K  ,  KC_L  , TD(SCL), TD(QUO) },
 { KC_LSFT,  KC_Z  ,  KC_X  ,  KC_C  ,  KC_V  ,  KC_B  ,   XXXXXXX, KC_PGUP, KC_RCTL,    KC_N  ,  KC_M  , KC_COMM, KC_DOT ,  KC_UP , SFTBSLS },
-{ KC_LCTL, KC_LGUI, ALTSHFT, KC_LALT,  LOWER , KC_SPC ,   KC_BSPC, KC_PGDN, KC_TAB ,   KC_ENT ,  RAISE , ALTSLSH, KC_LEFT, KC_DOWN, KC_RGHT },
+{ KC_LCTL, KC_LGUI, ALTSHFT, KC_LALT,  LOWER , KC_SPC ,   KC_BSPC, KC_PGDN, KC_LSFT,   KC_ENT ,  RAISE , ALTSLSH, KC_LEFT, KC_DOWN, KC_RGHT },
   },
 
 
