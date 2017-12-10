@@ -74,6 +74,7 @@ enum {
 #define SFTBSLS MT(MOD_RSFT, KC_BSLS)
 #define MLSHIFT OSM(KC_LSFT)
 #define MLCTL OSM(KC_LCTL)
+#define CTRLB LCTL(KC_B)
 
 #ifdef RGBLIGHT_ENABLE
   int RGB_current_mode;
@@ -97,7 +98,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   [_QW] = { /* QWERTY */
 { KC_GRV ,  KC_1  ,  KC_2  ,  KC_3  ,  KC_4  ,  KC_5  ,   KC_ESC ,  KC_F5 , KC_BSPC,    KC_6  ,  KC_7  ,  KC_8  ,  KC_9  ,  KC_0  , KC_MINS },
 { KC_TAB ,  KC_Q  ,  KC_W  ,  KC_E  ,  KC_R  ,  KC_T  ,   KC_LBRC,  FUNC  , KC_RBRC,    KC_Y  ,  KC_U  ,  KC_I  ,  KC_O  ,  KC_P  , KC_EQL  },
-{ KC_DEL ,  KC_A  ,  KC_S  ,  KC_D  ,  KC_F  ,  KC_G  ,   XXXXXXX, XXXXXXX, XXXXXXX,    KC_H  ,  KC_J  ,  KC_K  ,  KC_L  , TD(SCL), TD(QUO) },
+{ KC_DEL ,  KC_A  ,  KC_S  ,  KC_D  ,  KC_F  ,  KC_G  ,   CTRLB,   XXXXXXX, XXXXXXX,    KC_H  ,  KC_J  ,  KC_K  ,  KC_L  , TD(SCL), TD(QUO) },
 { KC_LSFT,  KC_Z  ,  KC_X  ,  KC_C  ,  KC_V  ,  KC_B  ,   XXXXXXX, KC_PGUP, KC_RCTL,    KC_N  ,  KC_M  , KC_COMM, KC_DOT ,  KC_UP , SFTBSLS },
 { KC_LCTL, KC_LGUI, ALTSHFT, KC_LALT,  LOWER , KC_SPC ,   KC_BSPC, KC_PGDN, KC_LSFT,   KC_ENT ,  RAISE , ALTSLSH, KC_LEFT, KC_DOWN, KC_RGHT },
   },
